@@ -8,9 +8,9 @@ def main():
         i=0
         while True:
             i +=1
-            print('iteration: ', i)
+            print (i)
             if not c:
-                print ("EOF")
+                #print ("EOF")
                 break
             _, c = scanner.get_token(c)
             scanner.print_last_token()
