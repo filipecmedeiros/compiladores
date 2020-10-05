@@ -171,6 +171,7 @@ class Scanner:
         lookahead = self.read()
         return self.get_token(lookahead)
 
+    
     def _attr(self, char):
         self.buffer = self.buffer + char
         lookahead = self.read()
@@ -180,6 +181,7 @@ class Scanner:
 
         return (8, self.buffer), lookahead
 
+    
     def _equal(self, char):
         self.buffer = self.buffer + char
         lookahead = self.read()
@@ -241,6 +243,7 @@ class Scanner:
 
         return (15, self.buffer), lookahead
 
+    
     def _close_parenthesis(self, char):
         self.buffer = self.buffer + char
         lookahead = self.read()
@@ -275,6 +278,7 @@ class Scanner:
 
         return (20, self.buffer), lookahead
 
+    
     def _id(self, char):
         self.buffer = self.buffer + char
         lookahead = self.read()
@@ -298,6 +302,7 @@ class Scanner:
         else:
             return (21, self.buffer), lookahead
 
+    
     def get_token(self, char):
         self.buffer = ""
         lookahead = None

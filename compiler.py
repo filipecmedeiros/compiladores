@@ -10,7 +10,7 @@ def main():
             if not char: #EOF
                 break
             _, char = scanner.get_token(char)
-            scanner.print_last_token()
+            #scanner.print_last_token()
             
             
 
