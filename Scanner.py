@@ -158,14 +158,14 @@ class Scanner:
         lookahead = self.read()
         
         if char == None or lookahead == None:
-            self.error('Comentario de multilinha')
+            self.error('Comentario de multilinha: fim de arquivo dentro de comentario')
         
-        while (char != '*' and lookahead != '/'):
+        while (char+lookahead) != '*/':
             char = lookahead
             lookahead = self.read()
 
             if lookahead == None:
-                self.error('Comentario de multilinha')
+                self.error('Comentario de multilinha: fim de arquivo dentro de comentario')
 
         char = lookahead
         lookahead = self.read()
@@ -228,7 +228,7 @@ class Scanner:
         lookahead = self.read()
 
         if lookahead != '=':
-            self.error('operador invalido')
+            self.error("operador invalido: exclamacao nao sucedida por '='")
 
         char = lookahead
         self.buffer = self.buffer + char
