@@ -4,15 +4,12 @@ from Scanner import Scanner
 def main():
     with open(sys.argv[1]) as code:
         scanner = Scanner(code)
-        c = code.read(1)
-        i=0
+        char = code.read(1)
+
         while True:
-            i +=1
-            print (i)
-            if not c:
-                #print ("EOF")
+            if not char: #EOF
                 break
-            _, c = scanner.get_token(c)
+            _, char = scanner.get_token(char)
             scanner.print_last_token()
             
             

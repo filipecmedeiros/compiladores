@@ -1,12 +1,13 @@
 /* commentario */
-1
-1.0
-+
-/
-1
-<
-<=
->
->=
-!=
-124343!
+1 + 2.0 / 4
+if
+x
+while 3 x < 0
+_xyz
+do
+123zdas
+
+
+
+
+segds d afsfsd

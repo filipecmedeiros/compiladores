@@ -8,6 +8,18 @@ class Scanner:
         self.column = 1
         self.buffer = ""
         self.last_token = (None, "")
+        
+        self.reserved_words = {
+            'main': 22,
+            'if': 23,
+            'else': 24,
+            'while': 25,
+            'do': 26,
+            'for': 27,
+            'int': 28,
+            'float': 29,
+            'char': 30
+        }
 
 
     def print_last_token(self):
@@ -263,6 +275,28 @@ class Scanner:
 
         return (20, self.buffer), lookahead
 
+    def _id(self, char):
+        self.buffer = self.buffer + char
+        lookahead = self.read()
+
+        if lookahead is None:
+            return (21, self.buffer), lookahead
+
+        while is_digit(lookahead) or is_letter(lookahead) or lookahead == '_':
+            char = lookahead
+            self.buffer = self.buffer + char
+            lookahead = self.read()
+
+            if lookahead is None:
+                if self.buffer in self.reserved_words:
+                    return (self.reserved_words[self.buffer], self.buffer), lookahead
+                else:
+                    return (21, self.buffer), lookahead
+
+        if self.buffer in self.reserved_words:
+            return (self.reserved_words[self.buffer], self.buffer), lookahead
+        else:
+            return (21, self.buffer), lookahead
 
     def get_token(self, char):
         self.buffer = ""
@@ -270,7 +304,7 @@ class Scanner:
 
         char = self.get_no_blank(char)
 
-        if char is None: #EOF
+        if char is None or char == '\n': #EOF
             self.last_token = None
             lookahead = None
         elif is_digit(char):
@@ -307,13 +341,9 @@ class Scanner:
             self.last_token, lookahead = self._comma(char)
         elif char == ';':
             self.last_token, lookahead = self._semmicolon(char)
+        elif is_letter(char) or char == '_':
+            self.last_token, lookahead = self._id(char)
+        else:
+            self.error('Caractere invalido')
 
         return self.last_token, lookahead
-
-
-
-
-
-
-
-
