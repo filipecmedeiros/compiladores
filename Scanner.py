@@ -222,6 +222,48 @@ class Scanner:
 
         return (14, self.buffer), lookahead
 
+    
+    def _open_parenthesis(self, char):
+        self.buffer = self.buffer + char
+        lookahead = self.read()
+
+        return (15, self.buffer), lookahead
+
+    def _close_parenthesis(self, char):
+        self.buffer = self.buffer + char
+        lookahead = self.read()
+
+        return (16, self.buffer), lookahead
+
+
+    def _open_brackets(self, char):
+        self.buffer = self.buffer + char
+        lookahead = self.read()
+
+        return (17, self.buffer), lookahead
+
+
+    def _close_brackets(self, char):
+        self.buffer = self.buffer + char
+        lookahead = self.read()
+
+        return (18, self.buffer), lookahead
+
+
+    def _comma(self, char):
+        self.buffer = self.buffer + char
+        lookahead = self.read()
+
+        return (19, self.buffer), lookahead
+
+
+    def _semmicolon(self, char):
+        self.buffer = self.buffer + char
+        lookahead = self.read()
+
+        return (20, self.buffer), lookahead
+
+
     def get_token(self, char):
         self.buffer = ""
         lookahead = None
@@ -253,6 +295,18 @@ class Scanner:
             self.last_token, lookahead = self._max(char)
         elif char == '!':
             self.last_token, lookahead = self._diff(char)
+        elif char == '(':
+            self.last_token, lookahead = self._open_parenthesis(char)
+        elif char == ')':
+            self.last_token, lookahead = self._close_parenthesis(char)
+        elif char == '{':
+            self.last_token, lookahead = self._open_brackets(char)
+        elif char == '}':
+            self.last_token, lookahead = self._close_brackets(char)
+        elif char == ',':
+            self.last_token, lookahead = self._comma(char)
+        elif char == ';':
+            self.last_token, lookahead = self._semmicolon(char)
 
         return self.last_token, lookahead
 
