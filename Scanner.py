@@ -23,7 +23,7 @@ class Scanner:
 
 
     def print_last_token(self):
-        print ('Last Token: ', self.last_token)
+            print ('Last Token: ' + str(self.last_token))
 
 
     def read(self):
@@ -314,8 +314,6 @@ class Scanner:
             lookahead = None
         elif is_digit(char):
             self.last_token, lookahead = self._int(char)
-        elif char == '.':
-            self.last_token, lookahead = self._float(char)
         elif char == "'":
             self.last_token, lookahead = self._char(char)
         elif char == '+':
