@@ -1,0 +1,44 @@
+<programa> ::= int main ( ) <bloco>
+
+<bloco> ::= { <decl_var>* <comando>* }
+
+<comando> ::= <comando_básico> | <iteração> | if ( <expr_relacional> ) <comando> else <comando>+
+
+<comando_básico> ::= <atribuição> | <bloco>
+
+<iteração> ::= while ( <expr_relacional> ) <comando>
+
+<atribuição> ::= <id> = <expr_arit> ;
+
+<expr_relacional> ::= <expr_arit> <op_relacional> <expr_arit>
+
+
+=========================================================================
+<expr_arit> ::= <expr_arit> + <termo> | <expr_arit> - <termo> | <termo>
+
+<termo> ::= <termo> * <fator> | <termo> / <fator> | <fator>
+=========================================================================
+
+
+<expr_arit> ::= <termo> <expr_arit_derivada>
+
+<expr_arit_derivada> ::= + <termo> <expr_arit_derivada> | + <termo> <expr_arit_derivada> | null
+
+<termo> ::= <fator> <termo_derivado>
+
+<termo_derivado> ::= * <fator> <termo_derivado> | / <fator> <termo_derivado> | null
+
+
+
+
+<fator> ::= ( <expr_arit> ) | <id> | <float> | <inteiro | <char>
+
+<decl_var> ::= <tipo> <id> ;
+
+<tipo> ::= int | float | char
+
+
+Expressões (ordem de precedência):
+1. *, /
+2. +, -
+3. ==, !=, <, >, <=, >=
