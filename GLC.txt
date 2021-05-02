@@ -22,7 +22,7 @@
 
 <expr_arit> ::= <termo> <expr_arit_derivada>
 
-<expr_arit_derivada> ::= + <termo> <expr_arit_derivada> | + <termo> <expr_arit_derivada> | null
+<expr_arit_derivada> ::= + <termo> <expr_arit_derivada> | - <termo> <expr_arit_derivada> | null
 
 <termo> ::= <fator> <termo_derivado>
 

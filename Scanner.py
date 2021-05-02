@@ -1,4 +1,4 @@
-from utils import BLANK, is_digit, is_letter
+from utils import LOG_VERBOSE, BLANK, is_digit, is_letter
 
 class Scanner:
 
@@ -25,7 +25,7 @@ class Scanner:
 
 
     def print_last_token(self):
-            print ('Last Token: ' + str(self.last_token))
+            print ('Last Token: ' + str(self.last_token[1]))
 
 
     def read(self):
@@ -151,7 +151,7 @@ class Scanner:
             self.lookahead = self.read()
 
             if self.char is None:
-                return None, None
+                return None
         return self.get_token()
 
     
@@ -286,7 +286,7 @@ class Scanner:
         self.lookahead = self.read()
 
         if self.lookahead is None:
-            return (21, self.buffer), self.lookahead
+            return (21, self.buffer)
 
         while is_digit(self.lookahead) or is_letter(self.lookahead) or self.lookahead == '_':
             self.char = self.lookahead
@@ -295,12 +295,12 @@ class Scanner:
 
             if self.lookahead is None:
                 if self.buffer in self.reserved_words:
-                    return (self.reserved_words[self.buffer], self.buffer), self.lookahead
+                    return (self.reserved_words[self.buffer], self.buffer)
                 else:
-                    return (21, self.buffer), self.lookahead
+                    return (21, self.buffer)
 
         if self.buffer in self.reserved_words:
-            return (self.reserved_words[self.buffer], self.buffer), self.lookahead
+            return (self.reserved_words[self.buffer], self.buffer)
         else:
             return (21, self.buffer)
 
@@ -352,4 +352,6 @@ class Scanner:
         else:
             self.error('Caractere invalido')
 
+        if LOG_VERBOSE and self.last_token is not None:
+            self.print_last_token()
         return self.last_token
