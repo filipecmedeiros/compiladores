@@ -196,7 +196,7 @@ class Scanner:
         self.lookahead = self.read()
 
         if self.lookahead == '=':
-            return self._min_equal(self.lookahead)
+            return self._min_equal()
 
         return (10, self.buffer)
 
@@ -213,7 +213,7 @@ class Scanner:
         self.lookahead = self.read()
 
         if self.lookahead == '=':
-            return self._max_equal(self.lookahead)
+            return self._max_equal()
 
         return (12, self.buffer)
 

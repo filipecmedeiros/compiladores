@@ -116,9 +116,20 @@ class Parser:
         self.token = self.scanner.get_token()
         if (self.token[0] == token_table['(']):
             self.relational_expression()
+            
+            if self.token[0] != token_table[')']:
+                self.scanner.error('Parênteses desbalanceados no if.')
+            
+            self.token = self.scanner.get_token()
             self.command()
+
+            self.token = self.scanner.get_token()
+            if self.token[0] == token_table['else']:
+                self.token = self.scanner.get_token()
+                self.command()
+
         else:
-            self.scanner.error('if não procedido por abertura de parêntesis.')
+            self.scanner.error('Comando if não seguido por abertura de parênteses.')
 
     def iteration(self):
         """
