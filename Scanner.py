@@ -8,6 +8,8 @@ class Scanner:
         self.column = 1
         self.buffer = ""
         self.last_token = (None, "")
+        self.char = None
+        self.lookahead = None
         
         self.reserved_words = {
             'main': 22,
@@ -48,305 +50,306 @@ class Scanner:
         exit(1)
 
 
-    def get_no_blank(self, char):
+    def get_no_blank(self):
 
-        while char in BLANK:
-            char = self.read()
-        return char
+        while self.char in BLANK:
+            self.char = self.read()
+        return self.char
 
 
-    def _int(self, char):
+    def _int(self):
 
-        while(is_digit(char)):
-            self.buffer = self.buffer + char
-            lookahead = self.read()
+        while(is_digit(self.char)):
+            self.buffer = self.buffer + self.char
+            self.lookahead = self.read()
 
-            if lookahead == None:
+            if self.lookahead == None:
                 break
-            elif lookahead == '.':
-                return self._float(lookahead)
+            elif self.lookahead == '.':
+                return self._float()
 
-            char = lookahead
+            self.char = self.lookahead
             
-        return (1, self.buffer), lookahead
+        return (1, self.buffer)
 
 
-    def _float(self, char):
+    def _float(self):
         
-        self.buffer = self.buffer + char
-        lookahead = self.read()
+        self.buffer = self.buffer + self.lookahead
+        self.lookahead = self.read()
 
-        if not is_digit(lookahead):
+        if not is_digit(self.lookahead):
             self.error('float mal formado')
 
-        char = lookahead
+        self.char = self.lookahead
 
-        while(is_digit(char)):
-            self.buffer = self.buffer + char
-            lookahead = self.read()
+        while(is_digit(self.char)):
+            self.buffer = self.buffer + self.char
+            self.lookahead = self.read()
 
-            if lookahead == None:
+            if self.lookahead == None:
                 break
-            char = lookahead
+            self.char = self.lookahead
             
-        return (2, self.buffer), lookahead
+        return (2, self.buffer)
 
 
-    def _char(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
+    def _char(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
 
-        if (not is_digit(lookahead)) and (not is_letter(lookahead)):
+        if (not is_digit(self.lookahead)) and (not is_letter(self.lookahead)):
             self.error('char mal formado')
 
-        char = lookahead
-        self.buffer = self.buffer + char
-        lookahead = self.read()
+        self.char = self.lookahead
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
 
-        if lookahead != "'":
+        if self.lookahead != "'":
             self.error('char mal formado')
 
-        char = lookahead
-        self.buffer = self.buffer + char
-        lookahead = self.read()
+        self.char = self.lookahead
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
 
-        return (3, self.buffer), lookahead
+        return (3, self.buffer)
 
-    def _add(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
-        return (4, self.buffer), lookahead
+    def _add(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
+        return (4, self.buffer)
 
-    def _sub(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
-        return (5, self.buffer), lookahead
+    def _sub(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
+        return (5, self.buffer)
 
-    def _mul(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
-        return (6, self.buffer), lookahead
+    def _mul(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
+        return (6, self.buffer)
 
 
-    def _div(self, char):
-        lookahead = self.read()
+    def _div(self):
+        self.lookahead = self.read()
 
-        if lookahead == '/':
-            return self._one_line_comment('/')
+        if self.lookahead == '/':
+            return self._one_line_comment()
 
-        elif lookahead == '*':
-            return self._multiline_comment('*')
+        elif self.lookahead == '*':
+            return self._multiline_comment()
 
-        self.buffer = self.buffer + char
-        return (7, self.buffer), lookahead
+        self.buffer = self.buffer + self.char
+        return (7, self.buffer)
 
     
-    def _one_line_comment(self, char):
-        lookahead = self.read()
+    def _one_line_comment(self):
+        self.lookahead = self.read()
 
-        while char != '\n':
-            char = lookahead
-            lookahead = self.read()
+        while self.char != '\n':
+            self.char = self.lookahead
+            self.lookahead = self.read()
 
-            if char is None:
+            if self.char is None:
                 return None, None
-        return self.get_token(lookahead)
+        return self.get_token()
 
     
-    def _multiline_comment(self, char):
-        char = self.read()
-        lookahead = self.read()
+    def _multiline_comment(self):
+        self.char = self.read()
+        self.lookahead = self.read()
         
-        if char == None or lookahead == None:
+        if self.char == None or self.lookahead == None:
             self.error('Comentario de multilinha: fim de arquivo dentro de comentario')
         
-        while (char+lookahead) != '*/':
-            char = lookahead
-            lookahead = self.read()
+        while (self.char+self.lookahead) != '*/':
+            self.char = self.lookahead
+            self.lookahead = self.read()
 
-            if lookahead == None:
+            if self.lookahead == None:
                 self.error('Comentario de multilinha: fim de arquivo dentro de comentario')
 
-        char = lookahead
-        lookahead = self.read()
-        return self.get_token(lookahead)
+        self.char = self.lookahead
+        self.lookahead = self.read()
+        return self.get_token()
 
     
-    def _attr(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
+    def _attr(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
 
-        if lookahead == '=':
-            return self._equal(lookahead)        
+        if self.lookahead == '=':
+            return self._equal(self.lookahead)        
 
-        return (8, self.buffer), lookahead
+        return (8, self.buffer)
 
     
-    def _equal(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
+    def _equal(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
 
-        return (9, self.buffer), lookahead
-
-
-    def _min(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
-
-        if lookahead == '=':
-            return self._min_equal(lookahead)        
-
-        return (10, self.buffer), lookahead
+        return (9, self.buffer)
 
 
-    def _min_equal(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
+    def _min(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
 
-        return (11, self.buffer), lookahead
+        if self.lookahead == '=':
+            return self._min_equal(self.lookahead)
 
-
-    def _max(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
-
-        if lookahead == '=':
-            return self._max_equal(lookahead)        
-
-        return (12, self.buffer), lookahead
+        return (10, self.buffer)
 
 
-    def _max_equal(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
+    def _min_equal(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
 
-        return (13, self.buffer), lookahead
+        return (11, self.buffer)
 
 
-    def _diff(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
+    def _max(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
 
-        if lookahead != '=':
+        if self.lookahead == '=':
+            return self._max_equal(self.lookahead)
+
+        return (12, self.buffer)
+
+
+    def _max_equal(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
+
+        return (13, self.buffer)
+
+
+    def _diff(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
+
+        if self.lookahead != '=':
             self.error("operador invalido: exclamacao nao sucedida por '='")
 
-        char = lookahead
-        self.buffer = self.buffer + char
-        lookahead = self.read()
+        self.char = self.lookahead
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
 
-        return (14, self.buffer), lookahead
-
-    
-    def _open_parenthesis(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
-
-        return (15, self.buffer), lookahead
+        return (14, self.buffer)
 
     
-    def _close_parenthesis(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
+    def _open_parenthesis(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
 
-        return (16, self.buffer), lookahead
-
-
-    def _open_brackets(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
-
-        return (17, self.buffer), lookahead
-
-
-    def _close_brackets(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
-
-        return (18, self.buffer), lookahead
-
-
-    def _comma(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
-
-        return (19, self.buffer), lookahead
-
-
-    def _semmicolon(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
-
-        return (20, self.buffer), lookahead
+        return (15, self.buffer)
 
     
-    def _id(self, char):
-        self.buffer = self.buffer + char
-        lookahead = self.read()
+    def _close_parenthesis(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
 
-        if lookahead is None:
-            return (21, self.buffer), lookahead
+        return (16, self.buffer)
 
-        while is_digit(lookahead) or is_letter(lookahead) or lookahead == '_':
-            char = lookahead
-            self.buffer = self.buffer + char
-            lookahead = self.read()
 
-            if lookahead is None:
+    def _open_brackets(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
+
+        return (17, self.buffer)
+
+
+    def _close_brackets(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
+
+        return (18, self.buffer)
+
+
+    def _comma(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
+
+        return (19, self.buffer)
+
+
+    def _semmicolon(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
+
+        return (20, self.buffer)
+
+    
+    def _id(self):
+        self.buffer = self.buffer + self.char
+        self.lookahead = self.read()
+
+        if self.lookahead is None:
+            return (21, self.buffer), self.lookahead
+
+        while is_digit(self.lookahead) or is_letter(self.lookahead) or self.lookahead == '_':
+            self.char = self.lookahead
+            self.buffer = self.buffer + self.char
+            self.lookahead = self.read()
+
+            if self.lookahead is None:
                 if self.buffer in self.reserved_words:
-                    return (self.reserved_words[self.buffer], self.buffer), lookahead
+                    return (self.reserved_words[self.buffer], self.buffer), self.lookahead
                 else:
-                    return (21, self.buffer), lookahead
+                    return (21, self.buffer), self.lookahead
 
         if self.buffer in self.reserved_words:
-            return (self.reserved_words[self.buffer], self.buffer), lookahead
+            return (self.reserved_words[self.buffer], self.buffer), self.lookahead
         else:
-            return (21, self.buffer), lookahead
+            return (21, self.buffer)
 
     
-    def get_token(self, char):
+    def get_token(self):
         self.buffer = ""
-        lookahead = None
+        self.char = self.lookahead
+        self.lookahead = None
 
-        char = self.get_no_blank(char)
+        self.char = self.get_no_blank()
 
-        if char is None or char == '\n': #EOF
+        if self.char is None or self.char == '\n': #EOF
             self.last_token = None
-            lookahead = None
-        elif is_digit(char):
-            self.last_token, lookahead = self._int(char)
-        elif char == "'":
-            self.last_token, lookahead = self._char(char)
-        elif char == '+':
-            self.last_token, lookahead = self._add(char)
-        elif char == '-':
-            self.last_token, lookahead = self._sub(char)
-        elif char == '*':
-            self.last_token, lookahead = self._mul(char)
-        elif char == '/':
-            self.last_token, lookahead = self._div(char)
-        elif char == '=':
-            self.last_token, lookahead = self._attr(char)
-        elif char == '<':
-            self.last_token, lookahead = self._min(char)
-        elif char == '>':
-            self.last_token, lookahead = self._max(char)
-        elif char == '!':
-            self.last_token, lookahead = self._diff(char)
-        elif char == '(':
-            self.last_token, lookahead = self._open_parenthesis(char)
-        elif char == ')':
-            self.last_token, lookahead = self._close_parenthesis(char)
-        elif char == '{':
-            self.last_token, lookahead = self._open_brackets(char)
-        elif char == '}':
-            self.last_token, lookahead = self._close_brackets(char)
-        elif char == ',':
-            self.last_token, lookahead = self._comma(char)
-        elif char == ';':
-            self.last_token, lookahead = self._semmicolon(char)
-        elif is_letter(char) or char == '_':
-            self.last_token, lookahead = self._id(char)
+            self.lookahead = None
+        elif is_digit(self.char):
+            self.last_token = self._int()
+        elif self.char == "'":
+            self.last_token = self._char()
+        elif self.char == '+':
+            self.last_token = self._add()
+        elif self.char == '-':
+            self.last_token = self._sub()
+        elif self.char == '*':
+            self.last_token = self._mul()
+        elif self.char == '/':
+            self.last_token = self._div()
+        elif self.char == '=':
+            self.last_token = self._attr()
+        elif self.char == '<':
+            self.last_token = self._min()
+        elif self.char == '>':
+            self.last_token = self._max()
+        elif self.char == '!':
+            self.last_token = self._diff()
+        elif self.char == '(':
+            self.last_token = self._open_parenthesis()
+        elif self.char == ')':
+            self.last_token = self._close_parenthesis()
+        elif self.char == '{':
+            self.last_token = self._open_brackets()
+        elif self.char == '}':
+            self.last_token = self._close_brackets()
+        elif self.char == ',':
+            self.last_token = self._comma()
+        elif self.char == ';':
+            self.last_token = self._semmicolon()
+        elif is_letter(self.char) or self.char == '_':
+            self.last_token = self._id()
         else:
             self.error('Caractere invalido')
 
-        return self.last_token, lookahead
+        return self.last_token

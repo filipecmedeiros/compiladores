@@ -10,33 +10,48 @@ class Parser:
     def run(self):
             with open(self.file) as code:
                 self.scanner = Scanner(code)
-                char = self.scanner.read()
+                self.scanner.lookahead = self.scanner.read()
 
-                self.program(char)
+                while self.scanner.lookahead:
+                    #self.program()
+                    token = self.scanner.get_token()
+                    self.scanner.print_last_token()
 
-                #token, char = self.scanner.get_token(char)
-
-                #print (token)
-
-    def program (self, char):
-            token, char = self.scanner.get_token(char)
+    def program (self):
+            token, char = self.scanner.get_token()
             print (token)
-            if token[0] != 28:
+            if token[1] != 'int':
                 self.scanner.error('Programa não iniciado por declaração de int.')
 
             token, char = self.scanner.get_token(char)
             print (token)
-            if token[0] != 22:
+            if token[1] != 'main':
                 self.scanner.error('Função main não declarada.')
 
             token, char = self.scanner.get_token(char)
             print (token)
-            if token[0] != 15:
+            if token[1] != '(':
                 self.scanner.error('Parênteses não abertos.')
 
             token, char = self.scanner.get_token(char)
             print (token)
-            if token[0] != 16:
+            if token[1] != ')':
                 self.scanner.error('Parênteses não fechados.')
 
-            # bloco
+            self.code_block(char)
+
+    def code_block(self, char):
+        token, char = self.scanner.get_token(char)
+        print (token)
+        if token[1] != '{':
+            self.scanner.error("Bloco de código não iniciado por '{'")
+
+        # declaração de variavel
+        
+
+        # comando
+
+        token, char = self.scanner.get_token(char)
+        print (token)
+        if token[1] != '{':
+            self.scanner.error("Bloco de código não finalizado por '}'")
