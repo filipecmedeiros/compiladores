@@ -31,7 +31,7 @@
 
 
 
-<fator> ::= ( <expr_arit> ) | <id> | <float> | <inteiro | <char>
+<fator> ::= ( <expr_arit> ) | <id> | <float> | <inteiro> | <char>
 
 <decl_var> ::= <tipo> <id> ;
 

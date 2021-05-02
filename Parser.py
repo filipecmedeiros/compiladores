@@ -39,6 +39,10 @@ class Parser:
 
         self.code_block()
 
+        self.token = self.scanner.get_token()
+        if self.token:
+            self.scanner.error('Programa não finalizado com fechamento de bloco de código.')
+
     def code_block(self):
         """
         <bloco> ::= { <decl_var>* <comando>* }
@@ -130,9 +134,11 @@ class Parser:
         self.token = self.scanner.get_token()
         if (self.token[0] == token_table['=']):
             
+
             self.arithmetic_expression()
-            
-            self.token = self.scanner.get_token()
+            #import pdb; pdb.set_trace()
+
+            #self.token = self.scanner.get_token()
             if self.token[0] != token_table[';']:
                 self.scanner.error('Esperado ; ao final de atribuição.')
         else:
@@ -156,10 +162,9 @@ class Parser:
         """
         <expr_arit_derivada> ::= + <termo> <expr_arit_derivada> | - <termo> <expr_arit_derivada> | null
         """
+        #import pdb; pdb.set_trace()
         print ('derived_arithmetic_expression')
-        self.token = self.scanner.get_token()
         if (self.token[0] == token_table['+'] or self.token[0] == token_table['-']):
-            self.token = self.scanner.get_token()
             self.term()
             self.derived_arithmetic_expression()
         else:
@@ -178,6 +183,7 @@ class Parser:
         <termo_derivado> ::= * <fator> <termo_derivado> | / <fator> <termo_derivado> | null
         """
         print ('derived_term')
+        self.token = self.scanner.get_token()
         if (self.token[0] == token_table['*'] or self.token[0] == token_table['/']):
             self.factor()
             self.derived_term()
@@ -198,7 +204,6 @@ class Parser:
             
             self.arithmetic_expression()
 
-            self.token = self.scanner.get_token()
             if (self.token[0] == token_table[')']):
                 return True
             else:
