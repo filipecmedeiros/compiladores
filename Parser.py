@@ -37,6 +37,7 @@ class Parser:
         if self.token[0] != token_table[')']:
             self.scanner.error('Parênteses não fechados.')
 
+        self.token = self.scanner.get_token()
         self.code_block()
 
         self.token = self.scanner.get_token()
@@ -47,7 +48,6 @@ class Parser:
         """
         <bloco> ::= { <decl_var>* <comando>* }
         """
-        self.token = self.scanner.get_token()
         if self.token[0] != token_table['{']:
             self.scanner.error("Bloco de código não iniciado por '{'")
 
@@ -124,7 +124,17 @@ class Parser:
         """
         <iteração> ::= while ( <expr_relacional> ) <comando>
         """
-        pass
+        self.token = self.scanner.get_token()
+        if self.token[0] != token_table['(']:
+            self.scanner.error('Comando while não seguido por abertura de parênteses.')
+        
+        self.relational_expression()
+
+        if self.token[0] != token_table[')']:
+            self.scanner.error('Parênteses desbalanceados no while.')
+
+        self.token = self.scanner.get_token()
+        self.command()
 
     def attr(self):
         """
@@ -134,9 +144,7 @@ class Parser:
         self.token = self.scanner.get_token()
         if (self.token[0] == token_table['=']):
             
-
             self.arithmetic_expression()
-            #import pdb; pdb.set_trace()
 
             #self.token = self.scanner.get_token()
             if self.token[0] != token_table[';']:
@@ -148,7 +156,25 @@ class Parser:
         """
         <expr_relacional> ::= <expr_arit> <op_relacional> <expr_arit>
         """
-        pass
+        self.arithmetic_expression()
+
+        self.relational_operator()
+
+        self.arithmetic_expression()
+
+    def relational_operator(self):
+        """
+        <op_relacional> ::= == | != | < | > | <= | >=
+        """
+        if (self.token[0] == token_table['=='] 
+            or self.token[0] == token_table['!='] 
+            or self.token[0] == token_table['<'] 
+            or self.token[0] == token_table['>'] 
+            or self.token[0] == token_table['<='] 
+            or self.token[0] == token_table['>=']):
+            return True
+        else:
+            self.scanner.error('Operador relacional esperado.')
 
     def arithmetic_expression(self):
         """

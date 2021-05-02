@@ -38,6 +38,15 @@
 <tipo> ::= int | float | char
 
 
+E -> T E'
+E'-> +TE' | -TE' | NULL
+T -> FT'
+T'-> *FT' | /FT' | NULL
+F -> valor | (valor)
+
+
+c = 'x'*'2'; -> ATTR -> id = E; -> id = TE' -> FT'E' -> 'x'T'E' -> 'x'*FT'E' -> 'x'*'2'T'E';
+
 Expressões (ordem de precedência):
 1. *, /
 2. +, -

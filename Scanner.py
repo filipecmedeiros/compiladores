@@ -179,7 +179,7 @@ class Scanner:
         self.lookahead = self.read()
 
         if self.lookahead == '=':
-            return self._equal(self.lookahead)        
+            return self._equal()
 
         return (8, self.buffer)
 

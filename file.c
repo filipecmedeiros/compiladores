@@ -12,12 +12,10 @@ int main() {
     ***/
     
 
-     
-    do{
-        
+
+    while  (y<10){
         w = w + 1;
-        
-    }while  (y<10);
+    }
 
 
     y = x;
