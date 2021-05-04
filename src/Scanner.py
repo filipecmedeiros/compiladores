@@ -1,4 +1,4 @@
-from utils import LOG_VERBOSE, BLANK, is_digit, is_letter
+from src.utils import LOG_VERBOSE, BLANK, is_digit, is_letter
 
 class Scanner:
 

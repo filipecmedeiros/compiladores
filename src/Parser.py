@@ -1,5 +1,5 @@
-from Scanner import Scanner
-from utils import token_table
+from src.Scanner import Scanner
+from src.utils import token_table
 
 
 class Parser:
@@ -151,7 +151,6 @@ class Parser:
         """
         <atribuição> ::= <id> = <expr_arit> ;
         """
-        print ('attr')
         self.token = self.scanner.get_token()
         if (self.token[0] == token_table['=']):
             
@@ -191,7 +190,6 @@ class Parser:
         """
         <expr_arit> ::= <termo> <expr_arit_derivada>
         """
-        print ('arithmetic_expression')
         self.term()
         self.derived_arithmetic_expression()
 
@@ -199,8 +197,6 @@ class Parser:
         """
         <expr_arit_derivada> ::= + <termo> <expr_arit_derivada> | - <termo> <expr_arit_derivada> | null
         """
-        #import pdb; pdb.set_trace()
-        print ('derived_arithmetic_expression')
         if (self.token[0] == token_table['+'] or self.token[0] == token_table['-']):
             self.term()
             self.derived_arithmetic_expression()
@@ -211,7 +207,6 @@ class Parser:
         """
         <termo> ::= <fator> <termo_derivado>
         """
-        print ('term')
         self.factor()
         self.derived_term()
 
@@ -219,7 +214,6 @@ class Parser:
         """
         <termo_derivado> ::= * <fator> <termo_derivado> | / <fator> <termo_derivado> | null
         """
-        print ('derived_term')
         self.token = self.scanner.get_token()
         if (self.token[0] == token_table['*'] or self.token[0] == token_table['/']):
             self.factor()

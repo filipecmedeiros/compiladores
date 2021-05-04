@@ -1,6 +1,5 @@
 import sys
-from Scanner import Scanner
-from Parser import Parser
+from src.Parser import Parser
 
 def main():
     parser = Parser(sys.argv[1])
