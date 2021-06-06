@@ -1,5 +1,5 @@
 
-LOG_VERBOSE = True
+LOG_VERBOSE = False
 
 BLANK = [' ', '\n', '\t', '\r']
 

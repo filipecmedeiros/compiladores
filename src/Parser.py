@@ -8,6 +8,7 @@ class Parser:
         self.sintax_is_right = True
         self.file = file
         self.token = None
+        self.context = {}
 
     def run(self):
         with open(self.file) as code:
@@ -39,7 +40,7 @@ class Parser:
 
         self.token = self.scanner.get_token()
         self.code_block()
-
+        
         self.token = self.scanner.get_token()
         if self.token:
             self.scanner.error('Programa não finalizado com fechamento de bloco de código.')
@@ -48,6 +49,8 @@ class Parser:
         """
         <bloco> ::= { <decl_var>* <comando>* }
         """
+        previous_context = self.context.copy()
+
         if self.token[0] != token_table['{']:
             self.scanner.error("Bloco de código não iniciado por '{'")
 
@@ -56,7 +59,7 @@ class Parser:
         while (self.token != None and self.token[0] != token_table['}']):
             
             if self.type():
-                self.declaration_of_variable()
+                self.declaration_of_variable(self.token[1])
 
             else:
                 self.command()
@@ -66,7 +69,12 @@ class Parser:
         if self.token[0] != token_table['}']:
             self.scanner.error("Bloco de código não finalizado por '}'")
 
-    def declaration_of_variable(self):
+        print ('Context:', self.context)
+        self.context = previous_context
+        print ('Context:', self.context)
+        print ('\n\n\n')
+
+    def declaration_of_variable(self, var_type):
         """
         <decl_var> ::= <tipo> <id> ;
         """
@@ -75,12 +83,14 @@ class Parser:
         self.token = self.scanner.get_token()
         if (self.token[0] != token_table['id']):
             self.scanner.error("Token esperado: identificador")
+        self.context[self.token[1]] = var_type
 
         self.token = self.scanner.get_token()
         while (self.token[0] == token_table[',']):
             self.token = self.scanner.get_token()
             if (self.token[0] != token_table['id']):
                 self.scanner.error("Token esperado: identificador")
+            self.context[self.token[1]] = var_type
             self.token = self.scanner.get_token()
 
         if (self.token[0] != token_table[';']):
@@ -105,6 +115,8 @@ class Parser:
         <comando_básico> ::= <atribuição> | <bloco>
         """
         if (self.token[0] == token_table['id']):
+            if self.token[1] not in self.context:
+                self.scanner.error('Uso de variável não declarada')
             self.attr()
         elif(self.token[0] == token_table['{']):
             self.code_block()
