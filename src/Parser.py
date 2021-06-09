@@ -270,10 +270,12 @@ class Parser:
             return 'char'
         elif(self.token[0] == token_table['(']):
             
-            self.arithmetic_expression()
+            var_type_a = self.arithmetic_expression()
 
             if (self.token[0] != token_table[')']):
                 self.scanner.error('Parênteses desbalanceados.')
+            
+            return var_type_a
         else:
             self.scanner.error('Esperado uma expressão aritmética, variável, valor inteiro, float ou char')
 
