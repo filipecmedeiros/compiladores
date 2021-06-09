@@ -70,9 +70,8 @@ class Parser:
             self.scanner.error("Bloco de código não finalizado por '}'")
 
         print ('Context:', self.context)
-        self.context = previous_context
-        print ('Context', self.context)
         print ('\n\n\n')
+        self.context = previous_context
 
     def declaration_of_variable(self, var_type, previous_context):
         """
