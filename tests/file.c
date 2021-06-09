@@ -2,7 +2,7 @@
 
 int main() {
     int x,y,z,a;
-    float h;int c;float w,k,a;
+    float h;char c;float w,k,a;
 
     c = 'x'*'2';
     x = y+w;
@@ -18,7 +18,7 @@ int main() {
     }
 
 
-    y = x;
+    w = x;
     
     while (x>w*8) {
        float y,a;

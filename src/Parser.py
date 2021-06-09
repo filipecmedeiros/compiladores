@@ -123,7 +123,7 @@ class Parser:
         if (self.token[0] == token_table['id']):
             if self.token[1] not in self.context:
                 self.scanner.error('Uso de variável não declarada')
-            self.attr()
+            self.attr(self.context[self.token[1]])
         elif(self.token[0] == token_table['{']):
             self.code_block()
 
@@ -165,14 +165,17 @@ class Parser:
         self.token = self.scanner.get_token()
         self.command()
 
-    def attr(self):
+    def attr(self, var_type_a):
         """
         <atribuição> ::= <id> = <expr_arit> ;
         """
         self.token = self.scanner.get_token()
         if (self.token[0] == token_table['=']):
             
-            self.arithmetic_expression()
+            var_type_b = self.arithmetic_expression()
+
+            if var_type_a != var_type_b:
+                self.scanner.error('Atribuição de variável de tipos diferentes')
 
             #self.token = self.scanner.get_token()
             if self.token[0] != token_table[';']:
