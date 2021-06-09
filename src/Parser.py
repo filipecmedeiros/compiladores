@@ -184,11 +184,14 @@ class Parser:
         """
         <expr_relacional> ::= <expr_arit> <op_relacional> <expr_arit>
         """
-        self.arithmetic_expression()
+        var_type_a = self.arithmetic_expression()
 
         self.relational_operator()
 
-        self.arithmetic_expression()
+        var_type_b = self.arithmetic_expression()
+
+        if var_type_a != var_type_b:
+            self.scanner.error('Operação relacional com tipos diferentes')
 
     def relational_operator(self):
         """
@@ -208,16 +211,24 @@ class Parser:
         """
         <expr_arit> ::= <termo> <expr_arit_derivada>
         """
-        self.term()
-        self.derived_arithmetic_expression()
+        var_type_a = self.term()
+        self.derived_arithmetic_expression(var_type_a)
 
-    def derived_arithmetic_expression(self):
+        return var_type_a
+
+    def derived_arithmetic_expression(self, var_type_a):
         """
         <expr_arit_derivada> ::= + <termo> <expr_arit_derivada> | - <termo> <expr_arit_derivada> | null
         """
         if (self.token[0] == token_table['+'] or self.token[0] == token_table['-']):
-            self.term()
-            self.derived_arithmetic_expression()
+            var_type_b = self.term()
+
+            if var_type_a != var_type_b and var_type_a is not None and var_type_b is not None:
+                self.scanner.error('Operação aritmética com tipos diferentes')
+            
+            self.derived_arithmetic_expression(var_type_a)
+
+            return var_type_a
         else:
             return None
 
@@ -225,17 +236,22 @@ class Parser:
         """
         <termo> ::= <fator> <termo_derivado>
         """
-        self.factor()
-        self.derived_term()
+        var_type_a = self.factor()
+        self.derived_term(var_type_a)
 
-    def derived_term(self):
+        return var_type_a
+
+    def derived_term(self, var_type_a):
         """
         <termo_derivado> ::= * <fator> <termo_derivado> | / <fator> <termo_derivado> | null
         """
         self.token = self.scanner.get_token()
         if (self.token[0] == token_table['*'] or self.token[0] == token_table['/']):
-            self.factor()
-            self.derived_term()
+            var_type_b = self.factor()
+
+            if var_type_a != var_type_b and var_type_a is not None and var_type_b is not None:
+                self.scanner.error('Operação aritmética com tipos diferentes')
+            self.derived_term(var_type_a)
         else:
             return None
 
@@ -244,18 +260,19 @@ class Parser:
         <fator> ::= ( <expr_arit> ) | <id> | <float> | <inteiro | <char>
         """
         self.token = self.scanner.get_token()
-        if (self.token[0] == token_table['id'] or 
-            self.token[0] == token_table['int_value'] or 
-            self.token[0] == token_table['float_value'] or 
-            self.token[0] == token_table['char_value']):
-            return True
+        if (self.token[0] == token_table['id']):
+            return self.context[self.token[1]]
+        elif self.token[0] == token_table['int_value']:
+            return 'int'
+        elif self.token[0] == token_table['float_value']:
+            return 'float'
+        elif self.token[0] == token_table['char_value']:
+            return 'char'
         elif(self.token[0] == token_table['(']):
             
             self.arithmetic_expression()
 
-            if (self.token[0] == token_table[')']):
-                return True
-            else:
+            if (self.token[0] != token_table[')']):
                 self.scanner.error('Parênteses desbalanceados.')
         else:
             self.scanner.error('Esperado uma expressão aritmética, variável, valor inteiro, float ou char')
