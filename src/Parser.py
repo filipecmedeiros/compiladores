@@ -10,6 +10,8 @@ class Parser:
         self.token = None
         self.context = {}
 
+        self.code = open("gci.txt", "w")
+
     def run(self):
         with open(self.file) as code:
             self.scanner = Scanner(code)
@@ -25,18 +27,22 @@ class Parser:
         self.token = self.scanner.get_token()
         if self.token[0] != token_table['int']:
             self.scanner.error('Programa não iniciado por declaração de int.')
+        self.write_code(self.token[1])
 
         self.token = self.scanner.get_token()
         if self.token[0] != token_table['main']:
             self.scanner.error('Função main não declarada.')
+        self.write_code(self.token[1])
 
         self.token = self.scanner.get_token()
         if self.token[0] != token_table['(']:
             self.scanner.error('Parênteses não abertos.')
+        self.write_code(self.token[1])
 
         self.token = self.scanner.get_token()
         if self.token[0] != token_table[')']:
             self.scanner.error('Parênteses não fechados.')
+        self.write_code(self.token[1])
 
         self.token = self.scanner.get_token()
         self.code_block()
@@ -53,7 +59,7 @@ class Parser:
 
         if self.token[0] != token_table['{']:
             self.scanner.error("Bloco de código não iniciado por '{'")
-
+        self.write_code(self.token[1], '\n')
         
         self.token = self.scanner.get_token()
         while (self.token != None and self.token[0] != token_table['}']):
@@ -68,9 +74,8 @@ class Parser:
 
         if self.token[0] != token_table['}']:
             self.scanner.error("Bloco de código não finalizado por '}'")
+        self.write_code(self.token[1], '\n')
 
-        print ('Context:', self.context)
-        print ('\n\n\n')
         self.context = previous_context
 
     def declaration_of_variable(self, var_type, previous_context):
@@ -82,6 +87,8 @@ class Parser:
         self.token = self.scanner.get_token()
         if (self.token[0] != token_table['id']):
             self.scanner.error("Token esperado: identificador")
+        self.write_code(var_type)
+        self.write_code(self.token[1], ';\n')
         
         if self.token[1] in self.context.keys() and self.token[1] not in previous_context.keys():
             self.scanner.error("Variável já declarada no mesmo escopo")
@@ -92,7 +99,9 @@ class Parser:
             self.token = self.scanner.get_token()
             if (self.token[0] != token_table['id']):
                 self.scanner.error("Token esperado: identificador")
-            
+            self.write_code(var_type)
+            self.write_code(self.token[1], ';\n')
+
             if self.token[1] in self.context.keys() and self.token[1] not in previous_context.keys():
                 self.scanner.error("Variável já declarada no mesmo escopo")
             self.context[self.token[1]] = var_type
@@ -286,3 +295,9 @@ class Parser:
         <tipo> ::= int | float | char
         """
         return self.token[0] == token_table['int'] or self.token[0] == token_table['float'] or self.token[0] == token_table['char']
+
+    def write_code(self, token, space=' '):
+        self.code.write(token + space)
+
+    def close_code(self):
+        self.code.close()
