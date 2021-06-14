@@ -9,6 +9,7 @@ class Parser:
         self.file = file
         self.token = None
         self.context = {}
+        self.aux = 0
 
         self.code = open("gci.txt", "w")
 
@@ -177,10 +178,13 @@ class Parser:
         """
         <atribuição> ::= <id> = <expr_arit> ;
         """
+        self.aux = 0
+        var = self.token[1]
+
         self.token = self.scanner.get_token()
         if (self.token[0] == token_table['=']):
             
-            var_type_b = self.arithmetic_expression()
+            var_type_b, expr = self.arithmetic_expression()
 
             if var_type_a != var_type_b:
                 self.scanner.error('Atribuição de variável de tipos diferentes')
@@ -188,6 +192,9 @@ class Parser:
             #self.token = self.scanner.get_token()
             if self.token[0] != token_table[';']:
                 self.scanner.error('Esperado ; ao final de atribuição.')
+
+            self.write_code(var + ' = ' + expr, ';\n')
+
         else:
             self.scanner.error('Operador de atribuição esperado.')
 
@@ -195,11 +202,11 @@ class Parser:
         """
         <expr_relacional> ::= <expr_arit> <op_relacional> <expr_arit>
         """
-        var_type_a = self.arithmetic_expression()
+        var_type_a, expr = self.arithmetic_expression()
 
         self.relational_operator()
 
-        var_type_b = self.arithmetic_expression()
+        var_type_b, expr2 = self.arithmetic_expression()
 
         if var_type_a != var_type_b:
             self.scanner.error('Operação relacional com tipos diferentes')
@@ -222,49 +229,89 @@ class Parser:
         """
         <expr_arit> ::= <termo> <expr_arit_derivada>
         """
-        var_type_a = self.term()
-        self.derived_arithmetic_expression(var_type_a)
+        var_type_a, expr = self.term()
+        var_type_b, expr2 = self.derived_arithmetic_expression(var_type_a, expr)
 
-        return var_type_a
+        if expr2 is not None:
+            var_type_a = var_type_b
+            expr = expr2
+        return var_type_a, expr
 
-    def derived_arithmetic_expression(self, var_type_a):
+    def derived_arithmetic_expression(self, var_type_a, expr):
         """
         <expr_arit_derivada> ::= + <termo> <expr_arit_derivada> | - <termo> <expr_arit_derivada> | null
         """
         if (self.token[0] == token_table['+'] or self.token[0] == token_table['-']):
-            var_type_b = self.term()
+            print ('aqui', expr)
+            if any([op in expr for op in ['*', '/', '+', '-']]):
+                self.write_code('t'+str(self.aux) + ' = ' + expr, ';\n')
+                expr = 't'+str(self.aux)
+                self.aux = self.aux + 1
+
+            expr = expr + ' ' + self.token[1]
+            var_type_b, expr2 = self.term()
+            print ('termo', expr2)
+
+            if any([op in expr2 for op in ['*', '/', '+', '-']]):
+                self.write_code('t'+str(self.aux) + ' = ' + expr2, ';\n')
+                expr2 = 't'+str(self.aux)
+                self.aux = self.aux + 1
 
             if var_type_a != var_type_b and var_type_a is not None and var_type_b is not None:
                 self.scanner.error('Operação aritmética com tipos diferentes')
             
-            self.derived_arithmetic_expression(var_type_a)
+            expr = expr + ' ' + expr2
+            print ('TESTE:', expr)
 
-            return var_type_a
+            self.derived_arithmetic_expression(var_type_a, expr)
+            print ('fim', expr)
+
+            return var_type_a, expr
         else:
-            return None
+            return None, None
 
     def term(self):
         """
         <termo> ::= <fator> <termo_derivado>
         """
-        var_type_a = self.factor()
-        self.derived_term(var_type_a)
+        var_type_a, expr = self.factor()
+        var_type_b, expr2 = self.derived_term(var_type_a, expr)
 
-        return var_type_a
+        if expr2 is not None:
+            expr = expr2
+        return var_type_a, expr
 
-    def derived_term(self, var_type_a):
+    def derived_term(self, var_type_a, expr):
         """
         <termo_derivado> ::= * <fator> <termo_derivado> | / <fator> <termo_derivado> | null
         """
         self.token = self.scanner.get_token()
         if (self.token[0] == token_table['*'] or self.token[0] == token_table['/']):
-            var_type_b = self.factor()
+            if any([op in expr for op in ['*', '/', '+', '-']]):
+                self.write_code('t'+str(self.aux) + ' = ' + expr, ';\n')
+                expr = 't'+str(self.aux)
+                self.aux = self.aux + 1
+                print ('EXP', expr)
 
+            expr = expr + ' ' + self.token[1]
+            var_type_b, expr2 = self.factor()
+
+            if any([op in expr2 for op in ['*', '/', '+', '-']]):
+                self.write_code('t'+str(self.aux) + ' = ' + expr2, ';\n')
+                expr2 = 't'+str(self.aux)
+                self.aux = self.aux + 1
+                
             if var_type_a != var_type_b and var_type_a is not None and var_type_b is not None:
                 self.scanner.error('Operação aritmética com tipos diferentes')
-            self.derived_term(var_type_a)
+
+            expr = expr + ' ' + expr2
+            print (expr)
+            self.derived_term(var_type_a, expr)
+
+            if expr is not None:
+                return var_type_a, expr
         else:
-            return None
+            return None, None
 
     def factor(self):
         """
@@ -272,21 +319,21 @@ class Parser:
         """
         self.token = self.scanner.get_token()
         if (self.token[0] == token_table['id']):
-            return self.context[self.token[1]]
+            return self.context[self.token[1]], self.token[1]
         elif self.token[0] == token_table['int_value']:
-            return 'int'
+            return 'int', self.token[1]
         elif self.token[0] == token_table['float_value']:
-            return 'float'
+            return 'float', self.token[1]
         elif self.token[0] == token_table['char_value']:
-            return 'char'
+            return 'char', self.token[1]
         elif(self.token[0] == token_table['(']):
             
-            var_type_a = self.arithmetic_expression()
+            var_type_a, expr = self.arithmetic_expression()
 
             if (self.token[0] != token_table[')']):
                 self.scanner.error('Parênteses desbalanceados.')
             
-            return var_type_a
+            return var_type_a, expr
         else:
             self.scanner.error('Esperado uma expressão aritmética, variável, valor inteiro, float ou char')
 
