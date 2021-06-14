@@ -11,7 +11,7 @@ class Parser:
         self.context = {}
         self.aux = 0
 
-        self.code = open("gci.txt", "w")
+        self.code = open("codigo_intermediario.txt", "w")
 
     def run(self):
         with open(self.file) as code:
@@ -28,22 +28,18 @@ class Parser:
         self.token = self.scanner.get_token()
         if self.token[0] != token_table['int']:
             self.scanner.error('Programa não iniciado por declaração de int.')
-        self.write_code(self.token[1])
 
         self.token = self.scanner.get_token()
         if self.token[0] != token_table['main']:
             self.scanner.error('Função main não declarada.')
-        self.write_code(self.token[1])
 
         self.token = self.scanner.get_token()
         if self.token[0] != token_table['(']:
             self.scanner.error('Parênteses não abertos.')
-        self.write_code(self.token[1])
 
         self.token = self.scanner.get_token()
         if self.token[0] != token_table[')']:
             self.scanner.error('Parênteses não fechados.')
-        self.write_code(self.token[1])
 
         self.token = self.scanner.get_token()
         self.code_block()
@@ -60,7 +56,6 @@ class Parser:
 
         if self.token[0] != token_table['{']:
             self.scanner.error("Bloco de código não iniciado por '{'")
-        self.write_code(self.token[1], '\n')
         
         self.token = self.scanner.get_token()
         while (self.token != None and self.token[0] != token_table['}']):
@@ -75,7 +70,6 @@ class Parser:
 
         if self.token[0] != token_table['}']:
             self.scanner.error("Bloco de código não finalizado por '}'")
-        self.write_code(self.token[1], '\n')
 
         self.context = previous_context
 
@@ -237,12 +231,11 @@ class Parser:
             expr = expr2
         return var_type_a, expr
 
-    def derived_arithmetic_expression(self, var_type_a, expr):
+    def derived_arithmetic_expression(self, var_type_a, expr, flag=False):
         """
         <expr_arit_derivada> ::= + <termo> <expr_arit_derivada> | - <termo> <expr_arit_derivada> | null
         """
         if (self.token[0] == token_table['+'] or self.token[0] == token_table['-']):
-            print ('aqui', expr)
             if any([op in expr for op in ['*', '/', '+', '-']]):
                 self.write_code('t'+str(self.aux) + ' = ' + expr, ';\n')
                 expr = 't'+str(self.aux)
@@ -250,21 +243,24 @@ class Parser:
 
             expr = expr + ' ' + self.token[1]
             var_type_b, expr2 = self.term()
-            print ('termo', expr2)
+            
+            if expr2 is not None and flag is False:
+                expr = expr + ' ' + expr2
 
-            if any([op in expr2 for op in ['*', '/', '+', '-']]):
-                self.write_code('t'+str(self.aux) + ' = ' + expr2, ';\n')
-                expr2 = 't'+str(self.aux)
-                self.aux = self.aux + 1
+                if any([op in expr for op in ['*', '/', '+', '-']]):
+                    self.write_code('t'+str(self.aux) + ' = ' + expr, ';\n')
+                    expr = 't'+str(self.aux)
+                    self.aux = self.aux + 1
+            else:
+                expr = expr + ' ' + expr2
 
             if var_type_a != var_type_b and var_type_a is not None and var_type_b is not None:
                 self.scanner.error('Operação aritmética com tipos diferentes')
             
-            expr = expr + ' ' + expr2
-            print ('TESTE:', expr)
+            _, expr3 = self.derived_arithmetic_expression(var_type_a, expr, flag=True)
 
-            self.derived_arithmetic_expression(var_type_a, expr)
-            print ('fim', expr)
+            if expr3 is not None:
+                expr = expr3
 
             return var_type_a, expr
         else:
@@ -277,11 +273,13 @@ class Parser:
         var_type_a, expr = self.factor()
         var_type_b, expr2 = self.derived_term(var_type_a, expr)
 
+        
         if expr2 is not None:
             expr = expr2
+        
         return var_type_a, expr
 
-    def derived_term(self, var_type_a, expr):
+    def derived_term(self, var_type_a, expr, flag=False):
         """
         <termo_derivado> ::= * <fator> <termo_derivado> | / <fator> <termo_derivado> | null
         """
@@ -291,25 +289,29 @@ class Parser:
                 self.write_code('t'+str(self.aux) + ' = ' + expr, ';\n')
                 expr = 't'+str(self.aux)
                 self.aux = self.aux + 1
-                print ('EXP', expr)
 
             expr = expr + ' ' + self.token[1]
             var_type_b, expr2 = self.factor()
 
-            if any([op in expr2 for op in ['*', '/', '+', '-']]):
-                self.write_code('t'+str(self.aux) + ' = ' + expr2, ';\n')
-                expr2 = 't'+str(self.aux)
-                self.aux = self.aux + 1
-                
+            if expr2 is not None and flag is False:
+                expr = expr + ' ' + expr2
+
+                if any([op in expr for op in ['*', '/', '+', '-']]):
+                    self.write_code('t'+str(self.aux) + ' = ' + expr, ';\n')
+                    expr = 't'+str(self.aux)
+                    self.aux = self.aux + 1
+
+            else:
+                expr = expr + ' ' + expr2
+
             if var_type_a != var_type_b and var_type_a is not None and var_type_b is not None:
                 self.scanner.error('Operação aritmética com tipos diferentes')
 
-            expr = expr + ' ' + expr2
-            print (expr)
-            self.derived_term(var_type_a, expr)
+            _, expr3 = self.derived_term(var_type_a, expr, flag=True)
 
-            if expr is not None:
-                return var_type_a, expr
+            if expr3 is not None:
+                expr = expr3
+            return var_type_a, expr
         else:
             return None, None
 
